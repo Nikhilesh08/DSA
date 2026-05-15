@@ -1,31 +1,25 @@
 class Solution {
   public:
-    int solve(int idx, int last, vector<vector<int>>& mat, vector<vector<int>>& dp) {
-        if (dp[idx][last] != -1) return dp[idx][last];
-        
-        int points = 0; 
-        
-        if (idx == 0) {
-            for (int task = 0; task < 3; task++) {
-                if (task != last) {
-                    points = max(points, mat[idx][task]);
-                }
-            }
-            return dp[idx][last] = points;
-        }
-        
-        for (int task = 0; task < 3; task++) {
-            if (task != last) {
-               points = max(points, mat[idx][task] + solve(idx - 1, task, mat, dp));
-            }
-        }
-        
-        return dp[idx][last] = points;
-    }
-    
     int maximumPoints(vector<vector<int>>& mat) {
         int n = mat.size();
-        vector<vector<int>> dp(n, vector<int>(4, -1));
-        return solve(n - 1, 3, mat, dp);
+        vector<vector<int>> dp(n, vector<int>(4, 0));
+        
+        dp[0][0] = max(mat[0][1], mat[0][2]);
+        dp[0][1] = max(mat[0][0], mat[0][2]);
+        dp[0][2] = max(mat[0][0], mat[0][1]);
+        dp[0][3] = max({mat[0][0], mat[0][1], mat[0][2]});
+        
+        for (int day = 1; day < n; day++) {
+            for (int last = 0; last < 4; last++) {
+                dp[day][last] = 0;
+                for (int task = 0; task < 3; task++) {
+                    if (task != last) {
+                        dp[day][last] = max(dp[day][last], mat[day][task] + dp[day - 1][task]);
+                    }
+                }
+            }
+        }
+        
+        return dp[n - 1][3];
     }
 };
