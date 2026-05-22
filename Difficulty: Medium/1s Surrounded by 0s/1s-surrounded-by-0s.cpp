@@ -1,50 +1,48 @@
 class Solution {
-  private:
-    void dfs(int r, int c, vector<vector<int>>& grid, int n, int m) {
-        if (r < 0 || r >= n || c < 0 || c >= m || grid[r][c] != 1) {
-            return;
-        }
-
-        grid[r][c] = 2;
-
-        dfs(r + 1, c, grid, n, m);
-        dfs(r - 1, c, grid, n, m);
-        dfs(r, c + 1, grid, n, m);
-        dfs(r, c - 1, grid, n, m);
-    }
-
   public:
     int cntOnes(vector<vector<int>>& grid) {
         int n = grid.size();
         int m = grid[0].size();
-
-        for (int j = 0; j < m; j++) {
-            if (grid[0][j] == 1) {
-                dfs(0, j, grid, n, m);
-            }
-            if (grid[n - 1][j] == 1) {
-                dfs(n - 1, j, grid, n, m);
-            }
-        }
-
-        for (int i = 0; i < n; i++) {
-            if (grid[i][0] == 1) {
-                dfs(i, 0, grid, n, m);
-            }
-            if (grid[i][m - 1] == 1) {
-                dfs(i, m - 1, grid, n, m);
-            }
-        }
-
-        int trappedCount = 0;
+        vector<vector<int>> vis(n, vector<int>(m, 0));
+        queue<pair<int, int>> q;
+        
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
-                if (grid[i][j] == 1) {
-                    trappedCount++;
+                if ((i == 0 || i == n - 1 || j == 0 || j == m - 1) && grid[i][j] == 1) {
+                    q.push({i, j});
+                    vis[i][j] = 1;
                 }
             }
         }
-
-        return trappedCount;
+        
+        int delRow[] = {-1, 0, +1, 0};
+        int delCol[] = {0, +1, 0, -1}; 
+        
+        while (!q.empty()) {
+            int row = q.front().first;
+            int col = q.front().second;
+            q.pop();
+            
+            for (int i = 0; i < 4; i++) {
+                int nrow = row + delRow[i];
+                int ncol = col + delCol[i];
+                
+                if (nrow >= 0 && nrow < n && ncol >= 0 && ncol < m && !vis[nrow][ncol] && grid[nrow][ncol] == 1) {
+                    q.push({nrow, ncol});
+                    vis[nrow][ncol] = 1;
+                }
+            }
+        }
+        
+        int cnt = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (grid[i][j] == 1 && !vis[i][j]) {
+                    cnt++;
+                }
+            }
+        }
+        
+        return cnt;
     }
 };
