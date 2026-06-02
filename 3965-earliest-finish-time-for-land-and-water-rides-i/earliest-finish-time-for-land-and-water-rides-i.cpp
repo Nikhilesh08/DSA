@@ -3,7 +3,7 @@ public:
     int earliestFinishTime(vector<int>& landStartTime, vector<int>& landDuration, vector<int>& waterStartTime, vector<int>& waterDuration) {
         int n=landDuration.size(),m=waterDuration.size();
         int landEnd=INT_MAX,waterEnd=INT_MAX;
-        int dura1=INT_MAX,dura2=INT_MAX;
+        int ans1=INT_MAX,ans2=INT_MAX;
         for(int i=0;i<n;i++){
             landEnd=min(landEnd,(landStartTime[i]+landDuration[i]));
         }
@@ -11,23 +11,15 @@ public:
             waterEnd=min(waterEnd,(waterStartTime[i]+waterDuration[i]));
         }
         for(int i=0;i<m;i++){
-            if(waterStartTime[i]<=landEnd){
-                dura1=min(dura1,waterDuration[i]);
-            }
-            else{
-                dura1=min(dura1,(waterStartTime[i]-landEnd+waterDuration[i]));
-            }
+           int waterSt=max(waterStartTime[i],landEnd);
+           ans1=min(ans1,waterSt+waterDuration[i]);
         }
 
          for(int i=0;i<n;i++){
-            if(landStartTime[i]<=waterEnd){
-                dura2=min(dura2,landDuration[i]);
-            }
-            else{
-                dura2=min(dura2,(landStartTime[i]-waterEnd+landDuration[i]));
-            }
+            int landSt=max(landStartTime[i],waterEnd);
+           ans2=min(ans2,landSt+landDuration[i]);
         }
         
-        return min(landEnd+dura1,waterEnd+dura2);
+        return min(ans1,ans2);
     }
 };
