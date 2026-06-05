@@ -1,25 +1,17 @@
 class Solution {
-  public:
-    int maxSubstring(string &s) {
-        int current_sum = 0;
-        int max_sum = -1; // Initializing to -1 automatically handles the "all 1s" edge case
+public:
+    int maxSubstring(string s) {
+        int max_sum = -1;
+        int curr_sum = 0;
         
-        for (char c : s) {
-            // Map '0' to +1 and '1' to -1
-            int val = (c == '0') ? 1 : -1;
-            
-            current_sum += val;
-            
-            // Update the maximum difference found so far
-            if (current_sum > max_sum) {
-                max_sum = current_sum;
+        for(int i = 0; i < s.size(); i++) {
+            int val = (s[i] == '0') ? 1 : -1;
+            curr_sum += val;
+            if (curr_sum > max_sum) {
+                max_sum = curr_sum;
             }
-            
-            // GREEDY CHOICE: If our current sum drops below 0, 
-            // the current substring is dragging us down. 
-            // It's better to abandon it and start a new substring from the next character.
-            if (current_sum < 0) {
-                current_sum = 0;
+            if (curr_sum < 0) {
+                curr_sum = 0;
             }
         }
         
