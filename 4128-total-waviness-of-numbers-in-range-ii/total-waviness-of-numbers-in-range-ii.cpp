@@ -1,69 +1,72 @@
+#include <string>
+#include <vector>
+#include <cstring>
+
+using namespace std;
+
 class Solution {
-    // Custom struct to return both count of valid numbers and the sum of waviness
-    struct Result {
-        long long count;
-        long long sum;
-    };
-
-    // Memoization table: idx(20) x tight(2) x started(2) x p1(11) x p2(11)
-    // We use 10 as a "null" value for digits before the number has started
-    Result memo[20][2][2][11][11];
-
-    Result dp(const string& S, int idx, bool tight, bool started, int p1, int p2) {
-        if (idx == S.length()) {
-            return {1, 0}; 
-        }
-
-        if (memo[idx][tight][started][p1][p2].count != -1) {
-            return memo[idx][tight][started][p1][p2];
-        }
-
-        int limit = tight ? (S[idx] - '0') : 9;
-        long long total_count = 0;
-        long long total_sum = 0;
-
-        for (int d = 0; d <= limit; ++d) {
-            bool next_tight = tight && (d == limit);
-
-            if (!started) {
-                if (d == 0) {
-                    Result res = dp(S, idx + 1, next_tight, false, 10, 10);
-                    total_count += res.count;
-                    total_sum += res.sum;
-                } else {
-                    Result res = dp(S, idx + 1, next_tight, true, d, 10);
-                    total_count += res.count;
-                    total_sum += res.sum;
-                }
-            } else {
-                int is_wave = 0;
-                if (p2 != 10 && p1 != 10) {
-                    if ((p1 > p2 && p1 > d) || (p1 < p2 && p1 < d)) {
-                        is_wave = 1;
-                    }
-                }
-
-                Result res = dp(S, idx + 1, next_tight, true, d, p1);
-                total_count += res.count;
-                total_sum += res.sum + res.count * is_wave; 
-            }
-        }
-
-        return memo[idx][tight][started][p1][p2] = {total_count, total_sum};
-    }
-
-    long long solve(long long N) {
-        if (N < 100) return 0;
-        string S = to_string(N);
-        
-        // Reset the memoization table for each solve call to prevent state leakage between test cases
-        memset(memo, -1, sizeof(memo));
-        
-        return dp(S, 0, true, false, 10, 10).sum;
-    }
-
 public:
+    using ll = long long;
+    string s;
+    int n;
+    
+    ll dpTotNum[20][11][11];
+    ll dpTotWav[20][11][11];
+
+    pair<ll, ll> solve(int idx, int prev2, int prev, bool tight, bool lz) {
+        if (idx == n) return {1, 0};
+        
+        if (!tight && !lz && dpTotNum[idx][prev2][prev] != -1) {
+            return {dpTotNum[idx][prev2][prev], dpTotWav[idx][prev2][prev]};
+        }
+
+        ll totNum = 0;
+        ll totScore = 0;
+        int ub = tight ? (s[idx] - '0') : 9;
+
+        for (int dig = 0; dig <= ub; dig++) {
+            bool nxtLz = (lz && dig == 0);
+            int nxtPrev2 = prev;
+            int nxtPrev = nxtLz ? 10 : dig;
+            bool nxtTight = (tight && dig == ub);
+
+            auto [remTotNum, remTotScore] = solve(idx + 1, nxtPrev2, nxtPrev, nxtTight, nxtLz);
+
+            ll currentScore = 0;
+            if (!nxtLz && prev2 != 10 && prev != 10) {
+                bool isPeak = (prev2 < prev && prev > dig);
+                bool isValley = (prev2 > prev && prev < dig);
+                if (isPeak || isValley) {
+                    currentScore = 1;
+                }
+            }
+
+            totNum += remTotNum;
+            totScore += remTotScore + (currentScore * remTotNum);
+        }
+
+        if (!tight && !lz) {
+            dpTotNum[idx][prev2][prev] = totNum;
+            dpTotWav[idx][prev2][prev] = totScore;
+        }
+        
+        return {totNum, totScore};
+    }
+
+    ll func(long long num) {
+        if (num < 100) return 0;
+
+        s = to_string(num);
+        n = s.length();
+        
+        memset(dpTotNum, -1, sizeof(dpTotNum));
+        memset(dpTotWav, -1, sizeof(dpTotWav));
+        
+        auto [totNum, totScore] = solve(0, 10, 10, true, true);
+        return totScore;
+    }
+
     long long totalWaviness(long long num1, long long num2) {
-        return solve(num2) - solve(num1 - 1);
+        return func(num2) - func(num1 - 1);
     }
 };
