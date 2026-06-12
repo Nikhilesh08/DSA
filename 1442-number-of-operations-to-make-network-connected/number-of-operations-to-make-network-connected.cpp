@@ -1,20 +1,28 @@
 class Solution {
 public:
-   class DisjointSet {
+    class DisjointSet {
     public:
         vector<int> parent;
         vector<int> rank;
+        int components;
+        
         DisjointSet(int n) {
             parent.resize(n);
             for (int i = 0; i < n; i++) {
                 parent[i] = i;
             }
             rank.resize(n, 0);
+            components = n;
         }
-        int Union(int u, int v) {
+        
+        void Union(int u, int v) {
             int rootU = findParent(u);
             int rootV = findParent(v);
-            if (rootU == rootV) return 1;
+            
+            if (rootU == rootV) return;
+            
+            components--;
+            
             if (rank[rootU] == rank[rootV]) {
                 parent[rootV] = rootU;
                 rank[rootU]++;
@@ -23,8 +31,8 @@ public:
             } else {
                 parent[rootU] = rootV;
             }
-            return 0;
         }
+        
         int findParent(int u) {
             if (parent[u] == u) {
                 return u;
@@ -32,23 +40,16 @@ public:
             return parent[u] = findParent(parent[u]);
         }
     };
+    
     int makeConnected(int n, vector<vector<int>>& connections) {
-        int more=0;
+        if (connections.size() < n - 1) return -1;
+        
         DisjointSet du(n);
-        for(int i=0;i<connections.size();i++){
-            if(du.Union(connections[i][0],connections[i][1])==1){
-                more++;
-            }
+        
+        for (int i = 0; i < connections.size(); i++) {
+            du.Union(connections[i][0], connections[i][1]);
         }
-        unordered_set<int>st;
-        for(int i=0;i<n;i++){
-            st.insert(du.findParent(i));
-        }
-        int components=st.size();
-        int req=components-1;
-        if(req<connections.size()){
-            if(more>=req) return req;
-        }
-        return -1;
+        
+        return du.components - 1;
     }
 };
