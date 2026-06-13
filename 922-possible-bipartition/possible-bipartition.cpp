@@ -1,55 +1,39 @@
 class Solution {
 public:
-    class DisjointSet{
-      public:
-      vector<int>parent;
-      vector<int>rank;
-        DisjointSet(int n){
-          parent.resize(n);
-          for(int i=0;i<n;i++){
-              parent[i]=i;
-          }
-        rank.resize(n,0);
-      }
-      
-      void Union(int u,int v){
-        int rootU = findParent(u);
-        int rootV = findParent(v);
-            if (rootU == rootV) return;
-            if (rank[rootU] == rank[rootV]) {
-                parent[rootU] = rootV;
-                rank[rootV]++;
-            } else if (rank[rootU] > rank[rootV]) {
-                parent[rootV] =rootU;
-            } else {
-                parent[rootU] = rootV;
+    bool dfs(int node, int currentColor, vector<vector<int>>& adj, vector<int>& color) {
+        color[node] = currentColor;
+        
+        for (int enemy : adj[node]) {
+            if (color[enemy] == 0) {
+                if (dfs(enemy, -currentColor, adj, color) == false) {
+                    return false;
+                }
+            } 
+            else if (color[enemy] == currentColor) {
+                return false;
             }
-      }
-      
-      int findParent(int u){
-          if(parent[u]==u){
-              return u;
-          }
-          return parent[u]=findParent(parent[u]);
-      }
-  };
+        }
+        
+        return true;
+    }
+
     bool possibleBipartition(int n, vector<vector<int>>& dislikes) {
-        DisjointSet du(n+1);
-       vector<vector<int>>adj(n+1);
-       for(int i=0;i<dislikes.size();i++){
-        int first=dislikes[i][0];
-        int second=dislikes[i][1];
-        adj[first].push_back(second);
-        adj[second].push_back(first);
-       }
-    for(int i=1;i<n;i++){
-       for(int enemy : adj[i]){
-        // are we in same grp and enemies !!! dangerrrr
-        if(du.findParent(enemy)==du.findParent(i)) return false;
-        // we are friends because for enemy is same(i)
-        du.Union(adj[i][0],enemy);
-       }
-       }
-       return true;
+        vector<vector<int>> adj(n + 1);
+        for (auto& edge : dislikes) {
+            adj[edge[0]].push_back(edge[1]);
+            adj[edge[1]].push_back(edge[0]);
+        }
+        
+        vector<int> color(n + 1, 0);
+        
+        for (int i = 1; i <= n; i++) {
+            if (color[i] == 0) {
+                if (dfs(i, 1, adj, color) == false) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     }
 };
